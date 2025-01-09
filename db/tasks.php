@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info.
+ * Tasks file of the plugin.
  *
  * @package   report_visits
  * @copyright 2025 Fondation UNIT
@@ -23,8 +23,16 @@
  * @author    Pierre Duverneix
  */
 
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2025010902;       // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2024100100;       // Requires this Moodle version.
-$plugin->component = 'report_visits';  // Full name of the plugin (used for diagnostics).
+$tasks = [
+    [
+        'classname' => 'report_visits\task\scheduled_report',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '17',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ]
+];

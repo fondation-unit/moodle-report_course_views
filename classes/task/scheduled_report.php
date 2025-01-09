@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info.
+ * Scheduled report task.
  *
  * @package   report_visits
  * @copyright 2025 Fondation UNIT
@@ -23,8 +23,19 @@
  * @author    Pierre Duverneix
  */
 
-defined('MOODLE_INTERNAL') || die;
+namespace report_visits\task;
 
-$plugin->version   = 2025010902;       // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2024100100;       // Requires this Moodle version.
-$plugin->component = 'report_visits';  // Full name of the plugin (used for diagnostics).
+require_once(__DIR__ . '/../../../../config.php');
+require_once(__DIR__ . '/../../locallib.php');
+
+use core\message\message;
+use moodle_url;
+
+abstract class scheduled_report extends \core\task\scheduled_task {
+    /**
+     * Execute the task.
+     */
+    public function execute() {
+        // Call your own api
+    }
+}
