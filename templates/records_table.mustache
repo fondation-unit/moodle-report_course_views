@@ -1,0 +1,18 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>{{#str}} course {{/str}}</th>
+            <th>{{#str}} category {{/str}}</th>
+            <th>{{#str}} total {{/str}}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {{#records}}
+        <tr>
+            <td><a href="{{{course_url}}}">{{{fullname}}}</a></td>
+            <td>{{{category}}}</td>
+            <td>{{{total}}}</td>
+        </tr>
+    {{/records}}
+    </tbody>
+</table>
