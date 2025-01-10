@@ -58,7 +58,7 @@ class ReportVisits {
         // Create the placeholder param for each course ID.
         list($in_sql, $params) = $this->db->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT c.id, c.fullname, cc.name AS `category`, COUNT(log.courseid) AS `score`
+        $sql = "SELECT c.id, c.fullname, cc.id AS `category_id`, cc.name AS `category`, COUNT(log.courseid) AS `score`
                 FROM {logstore_standard_log} AS `log`
                 INNER JOIN {course} AS `c` ON c.id = log.courseid
                 INNER JOIN {course_categories} AS `cc` ON c.category = cc.id
@@ -88,8 +88,11 @@ class ReportVisits {
 
     private function format_course_records($records) {
         foreach ($records as $record) {
-            $url = new \moodle_url('/course/view.php', array('id' => $record->id));
-            $record->course_url = $url->out(false);
+            $courseurl = new \moodle_url('/course/view.php', array('id' => $record->id));
+            $record->course_url = $courseurl->out(false);
+
+            $categoryurl = new \moodle_url('/course/index.php', array('categoryid' => $record->category_id));
+            $record->category_url = $categoryurl->out(false);
         }
 
         return array_values($records);
