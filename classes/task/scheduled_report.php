@@ -31,7 +31,16 @@ require_once(__DIR__ . '/../../locallib.php');
 use core\message\message;
 use moodle_url;
 
-abstract class scheduled_report extends \core\task\scheduled_task {
+class scheduled_report extends \core\task\scheduled_task {
+    /**
+     * Return the task's name as shown in admin screens.
+     *
+     * @return string
+     */
+    public function get_name() {
+        return get_string('scheduled_report', 'report_visits');
+    }
+
     /**
      * Execute the task.
      */
