@@ -24,3 +24,4 @@
  */
 
 $string['pluginname'] = 'Rapport des visites';
+$string['scheduled_report'] = 'Rapport programmé';

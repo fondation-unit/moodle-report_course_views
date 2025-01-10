@@ -40,15 +40,10 @@ $PAGE->set_pagelayout('admin');
 echo $OUTPUT->header();
 
 $report_visits = new \ReportVisits($DB);
-
-$startdate = "1704067200";
-$enddate = "1736427626";
-$records = $report_visits->generate_course_report($startdate, $enddate);
+$records = $report_visits->query_visits("course");
 
 $renderable = new \report_visits\output\report($records);
 $output = $PAGE->get_renderer('report_visits');
-
-// \ReportVisits::print_records_debug($records);
 
 echo $output->render($renderable);
 echo $OUTPUT->footer();

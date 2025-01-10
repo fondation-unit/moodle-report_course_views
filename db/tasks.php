@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Lang strings.
+ * Tasks file of the plugin.
  *
  * @package   report_visits
  * @copyright 2025 Fondation UNIT
@@ -23,5 +23,16 @@
  * @author    Pierre Duverneix
  */
 
-$string['pluginname'] = 'Visits report';
-$string['scheduled_report'] = 'Scheduled report';
+defined('MOODLE_INTERNAL') || die();
+
+$tasks = [
+    [
+        'classname' => 'report_visits\task\scheduled_report',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '17',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ]
+];

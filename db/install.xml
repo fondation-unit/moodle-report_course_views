@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="report/visits/db" VERSION="20250110" COMMENT="XMLDB file for Moodle report/visits"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="report_visits_schedules" COMMENT="Stores the scheduled task dates.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="component" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the component targeted by the schedule."/>
+        <FIELD NAME="status" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Stores the boolean value of the status of the task (0 for failure, 1 for success)."/>
+        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Stores the date of the terminated scheduled task."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="report_visits" COMMENT="Stores the data according to their component.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="component" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the component concerned by the log."/>
+        <FIELD NAME="score" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The score of the component's item."/>
+        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The record's creation timestamp."/>
+        <FIELD NAME="component_id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The ID of the component's record."/>
+        <FIELD NAME="schedule_id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The report_visits_schedules record ID."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="schedule_id" TYPE="foreign" FIELDS="schedule_id" REFTABLE="record_visits_schedules" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

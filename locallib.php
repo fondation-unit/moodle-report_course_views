@@ -38,20 +38,47 @@ class ReportVisits {
         print "</pre>";
     }
 
+    public function query_visits($component) {
+        $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
+        $records = $this->query_course_infos($component_ids);
+
+        return $this->format_course_records($records);
+    }
+
     public function generate_course_report($startdate, $enddate) {
         $records = $this->query_course_records($startdate, $enddate);
         return $this->format_course_records($records);
     }
 
+    private function query_course_infos($course_ids) {
+        // Validate the course IDs.
+        if (empty($course_ids)) {
+            return [];
+        }
+        // Create the placeholder param for each course ID.
+        list($in_sql, $params) = $this->db->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
+
+        $sql = "SELECT c.id, c.fullname, cc.name AS `category`, COUNT(log.courseid) AS `score`
+                FROM {logstore_standard_log} AS `log`
+                INNER JOIN {course} AS `c` ON c.id = log.courseid
+                INNER JOIN {course_categories} AS `cc` ON c.category = cc.id
+                WHERE log.courseid > 0
+                AND c.id $in_sql
+                GROUP BY log.courseid
+                ORDER BY `score` DESC";
+
+        return $this->db->get_records_sql($sql, $params);
+    }
+
     private function query_course_records($startdate, $enddate) {
-        $sql = "SELECT c.id, c.fullname, cc.name AS `category`, COUNT(userid) AS `users`, COUNT(log.courseid) AS `total`
-                FROM mdl_logstore_standard_log AS `log`
-                INNER JOIN mdl_course AS `c` ON c.id = log.courseid
-                INNER JOIN mdl_course_categories AS `cc` ON c.category = cc.id
+        $sql = "SELECT c.id, c.fullname, cc.name AS `category`, COUNT(log.courseid) AS `score`
+                FROM {logstore_standard_log} AS `log`
+                INNER JOIN {course} AS `c` ON c.id = log.courseid
+                INNER JOIN {course_categories} AS `cc` ON c.category = cc.id
                 WHERE log.courseid > 0
                 AND (log.timecreated BETWEEN :startdate AND :enddate)
                 GROUP BY log.courseid
-                ORDER BY `total` DESC";
+                ORDER BY `score` DESC";
 
         return $this->db->get_records_sql($sql, [
             'startdate' => $startdate,
