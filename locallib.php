@@ -45,9 +45,38 @@ class ReportVisits {
         return $this->format_course_records($records);
     }
 
-    public function generate_course_report($startdate, $enddate) {
+    public function generate_course_report($component, $startdate, $enddate) {
+        // Create a new schedule record.
+        $schedule = new \stdClass();
+        $schedule->component = $component;
+        $schedule->status = 1;
+        $schedule->timestamp = time();
+        $schedule_id = $this->db->insert_record('report_visits_schedules', $schedule, true);
+
+        // Query the course logs.
         $records = $this->query_course_records($startdate, $enddate);
-        return $this->format_course_records($records);
+
+        foreach ($records as $record) {
+            $existing = $this->db->get_record('report_visits', ['component' => $component, 'component_id' => $record->id]);
+            if ($existing) {
+                // Update the existing record.
+                $existing->score = intval($existing->score) + intval($record->score);
+                $existing->timestamp = time();
+                $existing->schedule_id = $schedule_id;
+
+                $this->db->update_record('report_visits', $existing);
+            } else {
+                // Create a new record.
+                $obj = new \stdClass();
+                $obj->component = $component;
+                $obj->score = $record->score;
+                $obj->timestamp = time();
+                $obj->component_id = $record->id;
+                $obj->schedule_id = $schedule_id;
+
+                $this->db->insert_record('report_visits', $obj);
+            }
+        }
     }
 
     private function query_course_infos($course_ids) {
@@ -58,10 +87,11 @@ class ReportVisits {
         // Create the placeholder param for each course ID.
         list($in_sql, $params) = $this->db->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT c.id, c.fullname, cc.id AS `category_id`, cc.name AS `category`, COUNT(log.courseid) AS `score`
+        $sql = "SELECT c.id, c.fullname, cc.id AS `category_id`, cc.name AS `category`, rv.score AS `score`
                 FROM {logstore_standard_log} AS `log`
                 INNER JOIN {course} AS `c` ON c.id = log.courseid
                 INNER JOIN {course_categories} AS `cc` ON c.category = cc.id
+                INNER JOIN {report_visits} AS `rv` ON rv.component_id = c.id
                 WHERE log.courseid > 0
                 AND c.id $in_sql
                 GROUP BY log.courseid
