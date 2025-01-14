@@ -31,14 +31,14 @@ require_once(__DIR__ . '/../../locallib.php');
 use core\message\message;
 use moodle_url;
 
-class scheduled_report extends \core\task\scheduled_task {
+class scheduled_course_report extends \core\task\scheduled_task {
     /**
      * Return the task's name as shown in admin screens.
      *
      * @return string
      */
     public function get_name() {
-        return get_string('scheduled_report', 'report_visits');
+        return get_string('scheduled_course_report', 'report_visits');
     }
 
     /**
@@ -53,7 +53,6 @@ class scheduled_report extends \core\task\scheduled_task {
         $startdate = ($last_schedule && $last_schedule->timestamp) ? $last_schedule->timestamp : 0;
         $enddate = time();
         $component = "course";
-
         $report_visits->generate_course_report($component, $startdate, $enddate);
     }
 }

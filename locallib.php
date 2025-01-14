@@ -38,7 +38,7 @@ class ReportVisits {
         print "</pre>";
     }
 
-    public function query_visits($component) {
+    public function query_course_visits($component) {
         $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
         $records = $this->query_course_infos($component_ids);
 
@@ -63,6 +63,7 @@ class ReportVisits {
                 $existing->score = intval($existing->score) + intval($record->score);
                 $existing->timestamp = time();
                 $existing->schedule_id = $schedule_id;
+                print("UPDATE RECORD :");
 
                 $this->db->update_record('report_visits', $existing);
             } else {
@@ -87,28 +88,40 @@ class ReportVisits {
         // Create the placeholder param for each course ID.
         list($in_sql, $params) = $this->db->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT c.id, c.fullname, cc.id AS `category_id`, cc.name AS `category`, rv.score AS `score`
-                FROM {logstore_standard_log} AS `log`
-                INNER JOIN {course} AS `c` ON c.id = log.courseid
-                INNER JOIN {course_categories} AS `cc` ON c.category = cc.id
-                INNER JOIN {report_visits} AS `rv` ON rv.component_id = c.id
-                WHERE log.courseid > 0
+        $sql = "SELECT c.id,
+                    c.fullname,
+                    cc.id AS category_id,
+                    cc.name AS category,
+                    rv.score AS score
+                FROM {logstore_standard_log} log
+                INNER JOIN {course} c ON c.id = log.courseid
+                INNER JOIN {course_categories} cc ON c.category = cc.id
+                INNER JOIN {report_visits} rv ON rv.component_id = c.id
+                WHERE (log.courseid > 0 
+                    OR (log.action LIKE 'viewed' 
+                        AND (log.component LIKE 'mod_%' OR log.component LIKE 'core_h5p')))
+                AND log.timecreated BETWEEN :startdate AND :enddate
                 AND c.id $in_sql
-                GROUP BY log.courseid
-                ORDER BY `score` DESC";
+                GROUP BY c.id
+                ORDER BY score DESC";
 
         return $this->db->get_records_sql($sql, $params);
     }
 
     private function query_course_records($startdate, $enddate) {
-        $sql = "SELECT c.id, c.fullname, cc.name AS `category`, COUNT(log.courseid) AS `score`
-                FROM {logstore_standard_log} AS `log`
-                INNER JOIN {course} AS `c` ON c.id = log.courseid
-                INNER JOIN {course_categories} AS `cc` ON c.category = cc.id
-                WHERE log.courseid > 0
-                AND (log.timecreated BETWEEN :startdate AND :enddate)
-                GROUP BY log.courseid
-                ORDER BY `score` DESC";
+        $sql = "SELECT c.id,
+                    c.fullname,
+                    cc.name AS category,
+                    COUNT(log.courseid) AS score
+                FROM {logstore_standard_log} log
+                INNER JOIN {course} c ON c.id = log.courseid
+                INNER JOIN {course_categories} cc ON c.category = cc.id
+                WHERE (log.courseid > 0 
+                    OR (log.action LIKE 'viewed' 
+                        AND (log.component LIKE 'mod_%' OR log.component LIKE 'core_h5p')))
+                AND log.timecreated BETWEEN :startdate AND :enddate
+                GROUP BY c.id, c.fullname, cc.name
+                ORDER BY score DESC";
 
         return $this->db->get_records_sql($sql, [
             'startdate' => $startdate,

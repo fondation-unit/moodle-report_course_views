@@ -40,10 +40,23 @@ $PAGE->set_pagelayout('admin');
 echo $OUTPUT->header();
 
 $report_visits = new \ReportVisits($DB);
-$records = $report_visits->query_visits("course");
 
-$renderable = new \report_visits\output\report($records);
 $output = $PAGE->get_renderer('report_visits');
+$pluginurl = new \moodle_url('/report/visits/view.php');
+$tab = optional_param('t', 1, PARAM_INT);
+$tabs = [];
+$tabs[] = new tabobject(1, new moodle_url($pluginurl, ['t' => 1]), get_string('course_report', 'report_visits'));
+$tabs[] = new tabobject(2, new moodle_url($pluginurl, ['t' => 2]), "tab2");
 
-echo $output->render($renderable);
+echo $OUTPUT->tabtree($tabs, $tab);
+
+// Display the tab view.
+if ($tab == 1) {
+    $records = $report_visits->query_course_visits("course");
+    $renderable = new \report_visits\output\course_report($records);
+    echo $output->render($renderable);
+} else {
+    // ...
+}
+
 echo $OUTPUT->footer();

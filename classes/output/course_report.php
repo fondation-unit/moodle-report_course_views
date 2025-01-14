@@ -31,7 +31,7 @@ use renderer_base;
 use templatable;
 use stdClass;
 
-class report implements renderable, templatable {
+class course_report implements renderable, templatable {
     private $records;
 
     public function __construct($records) {

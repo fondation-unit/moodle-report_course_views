@@ -24,4 +24,6 @@
  */
 
 $string['pluginname'] = 'Visits report';
+$string['course_report'] = 'Courses report';
 $string['scheduled_report'] = 'Scheduled report';
+$string['scheduled_course_report'] = 'Scheduled course report';

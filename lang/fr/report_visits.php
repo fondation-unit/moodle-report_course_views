@@ -25,3 +25,5 @@
 
 $string['pluginname'] = 'Rapport des visites';
 $string['scheduled_report'] = 'Rapport programmé';
+$string['course_report'] = 'Rapport des cours';
+$string['scheduled_course_report'] = 'Scheduled course report';

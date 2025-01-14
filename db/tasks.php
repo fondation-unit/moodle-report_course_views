@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
-        'classname' => 'report_visits\task\scheduled_report',
+        'classname' => 'report_visits\task\scheduled_course_report',
         'blocking' => 0,
         'minute' => '30',
         'hour' => '17',
