@@ -53,6 +53,7 @@ class scheduled_course_report extends \core\task\scheduled_task {
         $startdate = ($last_schedule && $last_schedule->timestamp) ? $last_schedule->timestamp : 0;
         $enddate = time();
         $component = "course";
+
         $report_visits->generate_course_report($component, $startdate, $enddate);
     }
 }

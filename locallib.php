@@ -32,20 +32,29 @@ class ReportVisits {
         $this->db = $db;
     }
 
-    public static function print_records_debug($records) {
+    /*
+     * Debug printing function.
+     */
+    public static function print_records_debug(array $records) {
         print "<pre>";
         print_r($records);
         print "</pre>";
     }
 
-    public function query_course_visits($component) {
+    /*
+     * Initiate a course visits report.
+     */ 
+    public function query_course_visits(string $component) {
         $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
         $records = $this->query_course_infos($component_ids);
 
         return $this->format_course_records($records);
     }
 
-    public function generate_course_report($component, $startdate, $enddate) {
+    /*
+     * Create a new course schedule record, then query the logs for the given timestamps.
+     */ 
+    public function generate_course_report(string $component, int $startdate, int $enddate) {
         // Create a new schedule record.
         $schedule = new \stdClass();
         $schedule->component = $component;
@@ -63,7 +72,6 @@ class ReportVisits {
                 $existing->score = intval($existing->score) + intval($record->score);
                 $existing->timestamp = time();
                 $existing->schedule_id = $schedule_id;
-                print("UPDATE RECORD :");
 
                 $this->db->update_record('report_visits', $existing);
             } else {
@@ -80,11 +88,15 @@ class ReportVisits {
         }
     }
 
-    private function query_course_infos($course_ids) {
+    /*
+     * Retrieve course records for the given course IDs.
+     */
+    private function query_course_infos(array $course_ids) {
         // Validate the course IDs.
         if (empty($course_ids)) {
             return [];
         }
+
         // Create the placeholder param for each course ID.
         list($in_sql, $params) = $this->db->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
 
@@ -98,9 +110,7 @@ class ReportVisits {
                 INNER JOIN {course_categories} cc ON c.category = cc.id
                 INNER JOIN {report_visits} rv ON rv.component_id = c.id
                 WHERE (log.courseid > 0 
-                    OR (log.action LIKE 'viewed' 
-                        AND (log.component LIKE 'mod_%' OR log.component LIKE 'core_h5p')))
-                AND log.timecreated BETWEEN :startdate AND :enddate
+                    OR (log.action LIKE 'viewed'))
                 AND c.id $in_sql
                 GROUP BY c.id
                 ORDER BY score DESC";
@@ -108,7 +118,10 @@ class ReportVisits {
         return $this->db->get_records_sql($sql, $params);
     }
 
-    private function query_course_records($startdate, $enddate) {
+    /*
+     * Retrieve the logs corresponding to course views between the given timestamps.
+     */
+    private function query_course_records(int $startdate, int $enddate) {
         $sql = "SELECT c.id,
                     c.fullname,
                     cc.name AS category,
@@ -117,8 +130,7 @@ class ReportVisits {
                 INNER JOIN {course} c ON c.id = log.courseid
                 INNER JOIN {course_categories} cc ON c.category = cc.id
                 WHERE (log.courseid > 0 
-                    OR (log.action LIKE 'viewed' 
-                        AND (log.component LIKE 'mod_%' OR log.component LIKE 'core_h5p')))
+                    OR (log.action LIKE 'viewed'))
                 AND log.timecreated BETWEEN :startdate AND :enddate
                 GROUP BY c.id, c.fullname, cc.name
                 ORDER BY score DESC";
@@ -129,11 +141,17 @@ class ReportVisits {
         ]);
     }
 
-    private function format_course_records($records) {
-        foreach ($records as $record) {
+    /*
+     * Format the course records for the template.
+     * We need links to the course and its category.
+     */
+    private function format_course_records(array $records) {
+      foreach ($records as $record) {
+            // Create an URL to the course.
             $courseurl = new \moodle_url('/course/view.php', array('id' => $record->id));
             $record->course_url = $courseurl->out(false);
 
+            // Create an URL to the course category.
             $categoryurl = new \moodle_url('/course/index.php', array('categoryid' => $record->category_id));
             $record->category_url = $categoryurl->out(false);
         }
