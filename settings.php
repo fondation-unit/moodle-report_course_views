@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die;
 $hassiteconfig = has_capability('moodle/site:config', context_system::instance());
 
 if ($hassiteconfig) {
-    // Add the report's view page
+    // Add the report's view page.
     $ADMIN->add('reports', new admin_externalpage(
         'reportvisits_view', // Unique identifier
         get_string('pluginname', 'report_visits'),
@@ -36,7 +36,7 @@ if ($hassiteconfig) {
         'report/visits:view'
     ));
 
-
+    // Add the plugin's specific settings page.
     $settings->add(new admin_setting_heading('report_visits/pluginname', '',
         new lang_string('settings', 'report_visits')));
 
