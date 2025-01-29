@@ -24,33 +24,52 @@
  */
 
 namespace report_visits\output;
+
 defined('MOODLE_INTERNAL') || die();
 
+use paging_bar;
 use renderable;
 use renderer_base;
 use templatable;
-use stdClass;
 
-class report implements renderable, templatable {
-    private $records;
+class course_report implements renderable, templatable {
+    /**
+     * @var array The array of records to display.
+     */
+    public array $records;
 
-    public function __construct($records) {
+    /**
+     * @var paging_bar The pagingbar object.
+     */
+    public paging_bar $pagingbar;
+
+    /**
+     * Class constructor.
+     *
+     * @param array $records
+     * @param paging_bar $pagingbar
+     */
+    public function __construct($records, $pagingbar) {
         $this->records = $records;
+        $this->pagingbar = $pagingbar;
     }
 
     /**
-     * Export this data for the mustache template.
+     * Export this data for the mustache template (templates/course_report.mustache).
      *
      * @param renderer_base $output
-     * @return stdClass
+     * @return \stdClass
      * @throws coding_exception
      * @throws moodle_exception
      */
     public function export_for_template(renderer_base $output) {
-        global $CFG, $PAGE;
+        global $OUTPUT;
+
+        $paginationhtml = $OUTPUT->render($this->pagingbar);
 
         return [
-            'records' => $this->records
+            'items' => $this->records,
+            'pagination' => $paginationhtml
         ];
     }
 }

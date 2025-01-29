@@ -31,8 +31,8 @@ use plugin_renderer_base;
 use renderable;
 
 class renderer extends plugin_renderer_base {
-    public function render_report(\templatable $output) {
+    public function render_course_report(\templatable $output) {
         $data = $output->export_for_template($this);
-        return parent::render_from_template('report_visits/report', $data);
+        return parent::render_from_template('report_visits/course_report', $data);
     }
 }

@@ -25,3 +25,8 @@
 
 $string['pluginname'] = 'Rapport des visites';
 $string['scheduled_report'] = 'Rapport programmé';
+$string['course_report'] = 'Rapport des cours';
+$string['scheduled_course_report'] = 'Scheduled course report';
+$string['settings'] = 'Réglages rapport des visites';
+$string['perpage'] = 'Nombre d\'éléments par page';
+$string['perpage_desc'] = 'Le nombre d\'éléments à afficher par page.';

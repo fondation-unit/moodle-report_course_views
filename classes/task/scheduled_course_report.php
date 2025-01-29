@@ -31,14 +31,14 @@ require_once(__DIR__ . '/../../locallib.php');
 use core\message\message;
 use moodle_url;
 
-class scheduled_report extends \core\task\scheduled_task {
+class scheduled_course_report extends \core\task\scheduled_task {
     /**
      * Return the task's name as shown in admin screens.
      *
      * @return string
      */
     public function get_name() {
-        return get_string('scheduled_report', 'report_visits');
+        return get_string('scheduled_course_report', 'report_visits');
     }
 
     /**
@@ -47,40 +47,13 @@ class scheduled_report extends \core\task\scheduled_task {
     public function execute() {
         global $DB;
 
-        $report_visits = new \ReportVisits($DB);
+        $report_visits = new \ReportVisits($DB, null);
+        // Use the most recent schedule timestamp as startdate or 0 in case of a fresh install.
         $last_schedule = $DB->get_record_sql('SELECT `timestamp` FROM {report_visits_schedules} ORDER BY id DESC LIMIT 1;');
         $startdate = ($last_schedule && $last_schedule->timestamp) ? $last_schedule->timestamp : 0;
         $enddate = time();
         $component = "course";
-        $records = $report_visits->generate_course_report($startdate, $enddate);
 
-        // Create a new schedule record.
-        $schedule = new \stdClass();
-        $schedule->component = $component;
-        $schedule->status = 1;
-        $schedule->timestamp = time();
-        $schedule_id = $DB->insert_record('report_visits_schedules', $schedule, true);
-
-        foreach ($records as $record) {
-            $existing = $DB->get_record('report_visits', ['component' => $component, 'component_id' => $record->id]);
-            if ($existing) {
-                // Update the existing record.
-                $existing->score = intval($existing->score) + intval($record->score);
-                $existing->timestamp = time();
-                $existing->schedule_id = $schedule_id;
-
-                $DB->update_record('report_visits', $existing);
-            } else {
-                // Create a new record.
-                $obj = new \stdClass();
-                $obj->component = $component;
-                $obj->score = $record->score;
-                $obj->timestamp = time();
-                $obj->component_id = $record->id;
-                $obj->schedule_id = $schedule_id;
-
-                $DB->insert_record('report_visits', $obj);
-            }
-        }
+        $report_visits->generate_course_report($component, $startdate, $enddate);
     }
 }
