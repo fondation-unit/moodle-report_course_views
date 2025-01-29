@@ -25,15 +25,39 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-class ReportVisits {
-    private $db;
+use paging_bar;
 
-    public function __construct($db) {
+class ReportVisits {
+    /**
+     * @var moodle_database Moodle's database connector.
+     */
+    protected $db;
+
+    /**
+     * @var int The current page.
+     */
+    protected $page;
+
+    /**
+     * @var int The perpage setting value.
+     */
+    protected $perpage;
+
+    /**
+     * Class constructor.
+     *
+     * @param moodle_database $db
+     */
+    public function __construct($db, $page = 0, $perpage = 10) {
         $this->db = $db;
+        $this->page = $page;
+        $this->perpage = $perpage;
     }
 
-    /*
+    /**
      * Debug printing function.
+     * 
+     * @return void
      */
     public static function print_records_debug(array $records) {
         print "<pre>";
@@ -41,8 +65,10 @@ class ReportVisits {
         print "</pre>";
     }
 
-    /*
+    /**
      * Initiate a course visits report.
+     * 
+     * @return function
      */ 
     public function query_course_visits(string $component) {
         $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
@@ -51,8 +77,10 @@ class ReportVisits {
         return $this->format_course_records($records);
     }
 
-    /*
+    /**
      * Create a new course schedule record, then query the logs for the given timestamps.
+     * 
+     * @return void
      */ 
     public function generate_course_report(string $component, int $startdate, int $enddate) {
         // Create a new schedule record.
@@ -88,8 +116,27 @@ class ReportVisits {
         }
     }
 
-    /*
+    /**
      * Retrieve course records for the given course IDs.
+     * 
+     * @return \stdClass
+     */
+    public function query_total_course_infos() {
+        $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => 'course']);
+        list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
+
+        $sql = "SELECT COUNT(id) as total
+                FROM {report_visits}
+                WHERE component_id $in_sql
+                LIMIT 1";
+
+        return $this->db->get_record_sql($sql, $params);
+    }
+
+    /**
+     * Retrieve course records for the given course IDs.
+     * 
+     * @return array
      */
     private function query_course_infos(array $course_ids) {
         // Validate the course IDs.
@@ -115,11 +162,14 @@ class ReportVisits {
                 GROUP BY c.id
                 ORDER BY score DESC";
 
-        return $this->db->get_records_sql($sql, $params);
+        $offset = intval($this->page) * intval($this->perpage);
+        return $this->db->get_records_sql($sql, $params, $offset, $this->perpage);
     }
 
-    /*
+    /**
      * Retrieve the logs corresponding to course views between the given timestamps.
+     * 
+     * @return array
      */
     private function query_course_records(int $startdate, int $enddate) {
         $sql = "SELECT c.id,
@@ -141,21 +191,37 @@ class ReportVisits {
         ]);
     }
 
-    /*
+    /**
      * Format the course records for the template.
      * We need links to the course and its category.
+     * 
+     * @return array
      */
     private function format_course_records(array $records) {
       foreach ($records as $record) {
             // Create an URL to the course.
             $courseurl = new \moodle_url('/course/view.php', array('id' => $record->id));
             $record->course_url = $courseurl->out(false);
-
             // Create an URL to the course category.
             $categoryurl = new \moodle_url('/course/index.php', array('categoryid' => $record->category_id));
             $record->category_url = $categoryurl->out(false);
         }
 
         return array_values($records);
+    }
+
+    /**
+     * Create a paging_bar object for the template.
+     * 
+     * @return paging_bar
+     */
+    public function create_pagingbar($component) {
+        global $CFG;
+
+        $records = $this->query_total_course_infos($component);
+        $baseurl = "$CFG->wwwroot/report/visits/view.php";
+        $pagingbar = new paging_bar($records->total, $this->page, $this->perpage, $baseurl);
+
+        return $pagingbar;
     }
 }

@@ -26,7 +26,6 @@
 require(__DIR__ . '/../../config.php');
 require(__DIR__ . '/locallib.php');
 
-
 global $DB, $PAGE;
 
 $systemcontext = context_system::instance();
@@ -37,26 +36,26 @@ $PAGE->set_title(get_string('pluginname', 'report_visits'));
 $PAGE->set_heading(get_string('pluginname', 'report_visits'));
 $PAGE->set_pagelayout('admin');
 
-echo $OUTPUT->header();
-
-$report_visits = new \ReportVisits($DB);
-
-$output = $PAGE->get_renderer('report_visits');
 $pluginurl = new \moodle_url('/report/visits/view.php');
+$page = optional_param('page', 0, PARAM_INT);
 $tab = optional_param('t', 1, PARAM_INT);
 $tabs = [];
 $tabs[] = new tabobject(1, new moodle_url($pluginurl, ['t' => 1]), get_string('course_report', 'report_visits'));
-$tabs[] = new tabobject(2, new moodle_url($pluginurl, ['t' => 2]), "tab2");
+
+echo $OUTPUT->header();
+
+$perpage = get_config('report_visits', 'perpage');
+$report_visits = new \ReportVisits($DB, $page, $perpage);
+$output = $PAGE->get_renderer('report_visits');
+$pagingbar = $report_visits->create_pagingbar("course");
 
 echo $OUTPUT->tabtree($tabs, $tab);
 
 // Display the tab view.
 if ($tab == 1) {
     $records = $report_visits->query_course_visits("course");
-    $renderable = new \report_visits\output\course_report($records);
+    $renderable = new \report_visits\output\course_report($records, $pagingbar);
     echo $output->render($renderable);
-} else {
-    // ...
 }
 
 echo $OUTPUT->footer();

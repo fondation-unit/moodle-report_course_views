@@ -25,8 +25,26 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$ADMIN->add('reports', new admin_externalpage('reportvisits', get_string('pluginname', 'report_visits'),
-        $CFG->wwwroot . "/report/visits/view.php", 'report/visits:view'));
+$hassiteconfig = has_capability('moodle/site:config', context_system::instance());
 
-// No report settings.
-$settings = null;
+if ($hassiteconfig) {
+    // Add the report's view page
+    $ADMIN->add('reports', new admin_externalpage(
+        'reportvisits_view', // Unique identifier
+        get_string('pluginname', 'report_visits'),
+        $CFG->wwwroot . "/report/visits/view.php",
+        'report/visits:view'
+    ));
+
+
+    $settings->add(new admin_setting_heading('report_visits/pluginname', '',
+        new lang_string('settings', 'report_visits')));
+
+    $settings->add(new admin_setting_configtext(
+        'report_visits/perpage',
+        new lang_string('perpage', 'report_visits'),
+        new lang_string('perpage_desc', 'report_visits'),
+        10,
+        PARAM_INT
+    ));
+}

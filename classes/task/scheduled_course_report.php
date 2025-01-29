@@ -47,7 +47,7 @@ class scheduled_course_report extends \core\task\scheduled_task {
     public function execute() {
         global $DB;
 
-        $report_visits = new \ReportVisits($DB);
+        $report_visits = new \ReportVisits($DB, null);
         // Use the most recent schedule timestamp as startdate or 0 in case of a fresh install.
         $last_schedule = $DB->get_record_sql('SELECT `timestamp` FROM {report_visits_schedules} ORDER BY id DESC LIMIT 1;');
         $startdate = ($last_schedule && $last_schedule->timestamp) ? $last_schedule->timestamp : 0;

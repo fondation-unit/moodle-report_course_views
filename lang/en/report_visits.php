@@ -27,3 +27,6 @@ $string['pluginname'] = 'Visits report';
 $string['course_report'] = 'Courses report';
 $string['scheduled_report'] = 'Scheduled report';
 $string['scheduled_course_report'] = 'Scheduled course report';
+$string['settings'] = 'Visits report settings';
+$string['perpage'] = 'Number of items per page';
+$string['perpage_desc'] = 'The number of items to display per page.';
