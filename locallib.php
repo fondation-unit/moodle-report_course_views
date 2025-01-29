@@ -73,9 +73,16 @@ class ReportVisits {
      * @return function
      */ 
     public function query_course_visits(string $component) {
-        $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
-        $records = $this->query_course_infos($component_ids);
+        // Cache the component IDs
+        $cache_key = "course_visits_" . md5($component);
+        $component_ids = $this->cache->get($cache_key);
 
+        if ($component_ids === false) {
+            $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
+            $this->cache->set($cache_key, $component_ids, 3600); // Cache duration.
+        }
+
+        $records = $this->query_course_infos($component_ids);
         return $this->format_course_records($records);
     }
 
@@ -162,17 +169,30 @@ class ReportVisits {
                     cc.id AS category_id,
                     cc.name AS category,
                     rv.score AS score
-                FROM {logstore_standard_log} log
-                INNER JOIN {course} c ON c.id = log.courseid
+                FROM {course} c
                 INNER JOIN {course_categories} cc ON c.category = cc.id
                 INNER JOIN {report_visits} rv ON rv.component_id = c.id
-                WHERE (log.courseid > 0 
-                    OR (log.action LIKE 'viewed'))
+                WHERE EXISTS (
+                    SELECT 1 
+                    FROM {logstore_standard_log} log 
+                    WHERE log.courseid = c.id 
+                    AND (log.courseid > 0 OR log.action = 'viewed')
+                    LIMIT 1
+                )
                 AND c.id $in_sql
-                GROUP BY c.id
-                ORDER BY score DESC";
+                GROUP BY c.id, c.fullname, cc.id, cc.name, rv.score
+                ORDER BY rv.score DESC";
 
+        // Chunk large datasets.
+        $chunk_size = 1000;
         $offset = intval($this->page) * intval($this->perpage);
+        
+        if (count($course_ids) > $chunk_size) {
+            $params['limit'] = $this->perpage;
+            $params['offset'] = $offset;
+            return $this->db->get_records_sql($sql . " LIMIT :limit OFFSET :offset", $params);
+        }
+        
         return $this->db->get_records_sql($sql, $params, $offset, $this->perpage);
     }
 
@@ -208,15 +228,17 @@ class ReportVisits {
      * @return array
      */
     private function format_course_records(array $records) {
-      foreach ($records as $record) {
-            // Create an URL to the course.
-            $courseurl = new \moodle_url('/course/view.php', array('id' => $record->id));
-            $record->course_url = $courseurl->out(false);
-            // Create an URL to the course category.
-            $categoryurl = new \moodle_url('/course/index.php', array('categoryid' => $record->category_id));
-            $record->category_url = $categoryurl->out(false);
+        $course_url_base = new \moodle_url('/course/view.php');
+        $category_url_base = new \moodle_url('/course/index.php');
+        
+        foreach ($records as $record) {
+            $course_url_base->param('id', $record->id);
+            $category_url_base->param('categoryid', $record->category_id);
+            
+            $record->course_url = $course_url_base->out(false);
+            $record->category_url = $category_url_base->out(false);
         }
-
+        
         return array_values($records);
     }
 
