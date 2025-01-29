@@ -47,6 +47,8 @@ class ReportVisits {
      * Class constructor.
      *
      * @param moodle_database $db
+     * @param int $page
+     * @param int $perpage
      */
     public function __construct($db, $page = 0, $perpage = 10) {
         $this->db = $db;
