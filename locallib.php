@@ -121,10 +121,18 @@ class ReportVisits {
     /**
      * Retrieve course records for the given course IDs.
      * 
-     * @return \stdClass
+     * @return \stdClass|null
      */
     public function query_total_course_infos() {
         $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => 'course']);
+
+        // Validate the component IDs.
+        if (empty($component_ids)) {
+            $obj = new \stdClass();
+            $obj->total = 0;
+            return $obj;
+        }
+
         list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
 
         $sql = "SELECT COUNT(id) as total
