@@ -95,24 +95,23 @@ class ReportVisits {
         $schedule->timestamp = time();
         $schedule_id = $this->db->insert_record('report_visits_schedules', $schedule, true);
 
-        // Prepare the date data.
-        $date = new DateTime();
-        $currentyear = $date->format('Y');
-        $currentmonth = $date->format('m');
-
         // Query the course logs.
         $records = $this->query_course_records($startdate, $enddate);
 
         foreach ($records as $record) {
-            $existingrecord = $this->db->get_record('report_visits', ['component' => $component, 'component_id' => $record->id]);
+            list($year, $month) = explode('-', $record->yearmonth);
+            $existingrecord = $this->db->get_record('report_visits', [
+                'component' => $component,
+                'component_id' => $record->id,
+                'year' => $year,
+                'month' => $month,
+            ]);
+
             if ($existingrecord) {
                 // Update the existing record.
                 $existingrecord->total = intval($existingrecord->total) + intval($record->total);
                 $existingrecord->timestamp = time();
-                $existingrecord->year = $currentyear;
-                $existingrecord->month = $currentmonth;
                 $existingrecord->schedule_id = $schedule_id;
-
                 $this->db->update_record('report_visits', $existingrecord);
             } else {
                 // Create a new record.
@@ -120,11 +119,10 @@ class ReportVisits {
                 $obj->component = $component;
                 $obj->total = $record->total;
                 $obj->timestamp = time();
-                $obj->year = $currentyear;
-                $obj->month = $currentmonth;
+                $obj->year = $record->year;
+                $obj->month = $record->month;
                 $obj->component_id = $record->id;
                 $obj->schedule_id = $schedule_id;
-
                 $this->db->insert_record('report_visits', $obj);
             }
         }
