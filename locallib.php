@@ -100,6 +100,7 @@ class ReportVisits {
 
         foreach ($records as $record) {
             list($year, $month) = explode('-', $record->yearmonth);
+            // Retrieve any existing record.
             $existingrecord = $this->db->get_record('report_visits', [
                 'component' => $component,
                 'component_id' => $record->id,
@@ -119,8 +120,8 @@ class ReportVisits {
                 $obj->component = $component;
                 $obj->total = $record->total;
                 $obj->timestamp = time();
-                $obj->year = $record->year;
-                $obj->month = $record->month;
+                $obj->year = $year;
+                $obj->month = $month;
                 $obj->component_id = $record->id;
                 $obj->schedule_id = $schedule_id;
                 $this->db->insert_record('report_visits', $obj);
