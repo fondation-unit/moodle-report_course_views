@@ -29,8 +29,18 @@ defined('MOODLE_INTERNAL') || die;
 
 /**
  * @global moodle_database $DB
+ * 
  * @return void
  */
 function xmldb_report_visits_install() {
     global $DB;
+}
+
+/**
+ * Custom uninstallation procedure.
+ * 
+ * @return bool
+ */
+function xmldb_report_visits_uninstall() {
+    return true;
 }
