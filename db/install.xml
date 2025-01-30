@@ -19,8 +19,10 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="component" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the component concerned by the log."/>
-        <FIELD NAME="score" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The score of the component's item."/>
-        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The record's creation timestamp."/>
+        <FIELD NAME="total" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The total number of views of the component."/>
+        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The record's creation/update timestamp."/>
+        <FIELD NAME="year" TYPE="smallint" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="The year of the record"/>
+        <FIELD NAME="month" TYPE="smallint" LENGTH="2" NOTNULL="true" SEQUENCE="false" COMMENT="The month of the record (1-12)"/>
         <FIELD NAME="component_id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The ID of the component's record."/>
         <FIELD NAME="schedule_id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The report_visits_schedules record ID."/>
       </FIELDS>

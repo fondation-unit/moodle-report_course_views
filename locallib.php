@@ -95,24 +95,33 @@ class ReportVisits {
         $schedule->timestamp = time();
         $schedule_id = $this->db->insert_record('report_visits_schedules', $schedule, true);
 
+        // Prepare the date data.
+        $date = new DateTime();
+        $currentyear = $date->format('Y');
+        $currentmonth = $date->format('m');
+
         // Query the course logs.
         $records = $this->query_course_records($startdate, $enddate);
 
         foreach ($records as $record) {
-            $existing = $this->db->get_record('report_visits', ['component' => $component, 'component_id' => $record->id]);
-            if ($existing) {
+            $existingrecord = $this->db->get_record('report_visits', ['component' => $component, 'component_id' => $record->id]);
+            if ($existingrecord) {
                 // Update the existing record.
-                $existing->score = intval($existing->score) + intval($record->score);
-                $existing->timestamp = time();
-                $existing->schedule_id = $schedule_id;
+                $existingrecord->total = intval($existingrecord->total) + intval($record->total);
+                $existingrecord->timestamp = time();
+                $existingrecord->year = $currentyear;
+                $existingrecord->month = $currentmonth;
+                $existingrecord->schedule_id = $schedule_id;
 
-                $this->db->update_record('report_visits', $existing);
+                $this->db->update_record('report_visits', $existingrecord);
             } else {
                 // Create a new record.
                 $obj = new \stdClass();
                 $obj->component = $component;
-                $obj->score = $record->score;
+                $obj->total = $record->total;
                 $obj->timestamp = time();
+                $obj->year = $currentyear;
+                $obj->month = $currentmonth;
                 $obj->component_id = $record->id;
                 $obj->schedule_id = $schedule_id;
 
@@ -164,7 +173,7 @@ class ReportVisits {
                     c.fullname,
                     cc.id AS category_id,
                     cc.name AS category,
-                    rv.score AS score
+                    rv.total AS total
                 FROM {course} c
                 INNER JOIN {course_categories} cc ON c.category = cc.id
                 INNER JOIN {report_visits} rv ON rv.component_id = c.id
@@ -176,8 +185,8 @@ class ReportVisits {
                     LIMIT 1
                 )
                 AND c.id $in_sql
-                GROUP BY c.id, c.fullname, cc.id, cc.name, rv.score
-                ORDER BY rv.score DESC";
+                GROUP BY c.id, c.fullname, cc.id, cc.name, rv.total
+                ORDER BY rv.total DESC";
 
         $offset = intval($this->page) * intval($this->perpage);
         return $this->db->get_records_sql($sql, $params, $offset, $this->perpage);
@@ -189,10 +198,18 @@ class ReportVisits {
      * @return array
      */
     private function query_course_records(int $startdate, int $enddate) {
+        // Different date extraction syntax based on database type.
+        if ($this->db->get_dbfamily() === 'postgres') {
+            $yearmonth = "to_char(to_timestamp(log.timecreated), 'YYYY-MM')";
+        } else {
+            $yearmonth = "FROM_UNIXTIME(log.timecreated, '%Y-%m')";
+        }
+
         $sql = "SELECT c.id,
                     c.fullname,
                     cc.name AS category,
-                    COUNT(log.courseid) AS score
+                    {$yearmonth} as yearmonth,
+                    COUNT(log.courseid) AS total
                 FROM {logstore_standard_log} log
                 INNER JOIN {course} c ON c.id = log.courseid
                 INNER JOIN {course_categories} cc ON c.category = cc.id
@@ -201,8 +218,14 @@ class ReportVisits {
                     OR (log.action LIKE 'viewed')
                 )
                 AND log.timecreated BETWEEN :startdate AND :enddate
-                GROUP BY c.id, c.fullname, cc.name
-                ORDER BY score DESC";
+                GROUP BY
+                    c.id,
+                    c.fullname,
+                    cc.name,
+                    yearmonth
+                ORDER BY
+                    yearmonth DESC,
+                    total DESC";
 
         return $this->db->get_records_sql($sql, [
             'startdate' => $startdate,
