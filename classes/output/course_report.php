@@ -63,9 +63,7 @@ class course_report implements renderable, templatable {
      * @throws moodle_exception
      */
     public function export_for_template(renderer_base $output) {
-        global $OUTPUT;
-
-        $paginationhtml = $OUTPUT->render($this->pagingbar);
+        $paginationhtml = $output->render($this->pagingbar);
 
         return [
             'items' => $this->records,

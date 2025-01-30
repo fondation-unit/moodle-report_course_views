@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 class ReportVisits {
-    /** @var moodle_database Moodle's database connector. */
+    /** @var \moodle_database Moodle database connector. */
     protected $db;
 
     /** @var \cache_application Cache instance for rate limiter. */
@@ -41,7 +41,7 @@ class ReportVisits {
     /**
      * Class constructor.
      *
-     * @param moodle_database $db
+     * @param \moodle_database $db
      * @param int $page
      * @param int $perpage
      */
@@ -69,7 +69,7 @@ class ReportVisits {
      * @return function
      */
     public function query_course_visits(string $component) {
-        // Cache the component IDs
+        // Cache the component IDs.
         $cache_key = "course_visits_" . md5($component);
         $component_ids = isset($cache_key) ? $this->cache->get($cache_key) : null;
 
@@ -124,7 +124,7 @@ class ReportVisits {
     /**
      * Retrieve course records for the given course IDs.
      * 
-     * @return \stdClass|null
+     * @return \stdClass
      */
     public function query_total_course_infos() {
         $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => 'course']);
@@ -241,7 +241,7 @@ class ReportVisits {
     /**
      * Create a paging_bar object for the template.
      * 
-     * @return paging_bar
+     * @return \paging_bar
      */
     public function create_pagingbar($component) {
         global $CFG;
