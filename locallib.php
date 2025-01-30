@@ -99,13 +99,11 @@ class ReportVisits {
         $records = $this->query_course_records($startdate, $enddate);
 
         foreach ($records as $record) {
-            list($year, $month) = explode('-', $record->yearmonth);
             // Retrieve any existing record.
             $existingrecord = $this->db->get_record('report_visits', [
                 'component' => $component,
                 'component_id' => $record->id,
-                'year' => $year,
-                'month' => $month,
+                'year' => $record->year
             ]);
 
             if ($existingrecord) {
@@ -120,8 +118,7 @@ class ReportVisits {
                 $obj->component = $component;
                 $obj->total = $record->total;
                 $obj->timestamp = time();
-                $obj->year = $year;
-                $obj->month = $month;
+                $obj->year = $record->year;
                 $obj->component_id = $record->id;
                 $obj->schedule_id = $schedule_id;
                 $this->db->insert_record('report_visits', $obj);
@@ -199,15 +196,15 @@ class ReportVisits {
     private function query_course_records(int $startdate, int $enddate) {
         // Different date extraction syntax based on database type.
         if ($this->db->get_dbfamily() === 'postgres') {
-            $yearmonth = "to_char(to_timestamp(log.timecreated), 'YYYY-MM')";
+            $year = "EXTRACT(YEAR FROM to_timestamp(log.timecreated))";
         } else {
-            $yearmonth = "FROM_UNIXTIME(log.timecreated, '%Y-%m')";
+            $year = "YEAR(FROM_UNIXTIME(log.timecreated))";
         }
 
         $sql = "SELECT c.id,
                     c.fullname,
                     cc.name AS category,
-                    {$yearmonth} as yearmonth,
+                    {$year} as year,
                     COUNT(log.courseid) AS total
                 FROM {logstore_standard_log} log
                 INNER JOIN {course} c ON c.id = log.courseid
@@ -221,9 +218,9 @@ class ReportVisits {
                     c.id,
                     c.fullname,
                     cc.name,
-                    yearmonth
+                    year
                 ORDER BY
-                    yearmonth DESC,
+                    year DESC,
                     total DESC";
 
         return $this->db->get_records_sql($sql, [
