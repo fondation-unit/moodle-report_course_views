@@ -179,16 +179,7 @@ class ReportVisits {
                 GROUP BY c.id, c.fullname, cc.id, cc.name, rv.score
                 ORDER BY rv.score DESC";
 
-        // Chunk large datasets.
-        $chunk_size = 1000;
         $offset = intval($this->page) * intval($this->perpage);
-
-        if (count($course_ids) > $chunk_size) {
-            $params['limit'] = $this->perpage;
-            $params['offset'] = $offset;
-            return $this->db->get_records_sql($sql . " LIMIT :limit OFFSET :offset", $params);
-        }
-
         return $this->db->get_records_sql($sql, $params, $offset, $this->perpage);
     }
 
