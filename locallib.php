@@ -25,22 +25,17 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-use paging_bar;
-
 class ReportVisits {
-    /**
-     * @var moodle_database Moodle's database connector.
-     */
+    /** @var moodle_database Moodle's database connector. */
     protected $db;
 
-    /**
-     * @var int The current page.
-     */
+    /** @var \cache_application Cache instance for rate limiter. */
+    private \cache_application $cache;
+
+    /** @var int The current page. */
     protected $page;
 
-    /**
-     * @var int The perpage setting value.
-     */
+    /** @var int The perpage setting value. */
     protected $perpage;
 
     /**
@@ -52,6 +47,7 @@ class ReportVisits {
      */
     public function __construct($db, $page = 0, $perpage = 10) {
         $this->db = $db;
+        $this->cache = \cache::make('report_visits', 'course_visits');
         $this->page = $page;
         $this->perpage = $perpage;
     }
@@ -71,11 +67,11 @@ class ReportVisits {
      * Initiate a course visits report.
      * 
      * @return function
-     */ 
+     */
     public function query_course_visits(string $component) {
         // Cache the component IDs
         $cache_key = "course_visits_" . md5($component);
-        $component_ids = $this->cache->get($cache_key);
+        $component_ids = isset($cache_key) ? $this->cache->get($cache_key) : null;
 
         if ($component_ids === false) {
             $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
@@ -90,7 +86,7 @@ class ReportVisits {
      * Create a new course schedule record, then query the logs for the given timestamps.
      * 
      * @return void
-     */ 
+     */
     public function generate_course_report(string $component, int $startdate, int $enddate) {
         // Create a new schedule record.
         $schedule = new \stdClass();
@@ -186,13 +182,13 @@ class ReportVisits {
         // Chunk large datasets.
         $chunk_size = 1000;
         $offset = intval($this->page) * intval($this->perpage);
-        
+
         if (count($course_ids) > $chunk_size) {
             $params['limit'] = $this->perpage;
             $params['offset'] = $offset;
             return $this->db->get_records_sql($sql . " LIMIT :limit OFFSET :offset", $params);
         }
-        
+
         return $this->db->get_records_sql($sql, $params, $offset, $this->perpage);
     }
 
@@ -230,15 +226,15 @@ class ReportVisits {
     private function format_course_records(array $records) {
         $course_url_base = new \moodle_url('/course/view.php');
         $category_url_base = new \moodle_url('/course/index.php');
-        
+
         foreach ($records as $record) {
             $course_url_base->param('id', $record->id);
             $category_url_base->param('categoryid', $record->category_id);
-            
+
             $record->course_url = $course_url_base->out(false);
             $record->category_url = $category_url_base->out(false);
         }
-        
+
         return array_values($records);
     }
 
@@ -252,7 +248,7 @@ class ReportVisits {
 
         $records = $this->query_total_course_infos($component);
         $baseurl = "$CFG->wwwroot/report/visits/view.php";
-        $pagingbar = new paging_bar($records->total, $this->page, $this->perpage, $baseurl);
+        $pagingbar = new \paging_bar($records->total, $this->page, $this->perpage, $baseurl);
 
         return $pagingbar;
     }

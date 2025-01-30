@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info.
+ * report_visits cache definitions.
  *
  * @package   report_visits
  * @copyright 2025 Fondation UNIT
@@ -23,9 +23,14 @@
  * @author    Pierre Duverneix
  */
 
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2025013000;       // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2024042200;       // Requires this Moodle version.
-$plugin->component = 'report_visits';  // Full name of the plugin (used for diagnostics).
-$plugin->maturity  = MATURITY_BETA;    // The release maturity (https://moodledev.io/docs/4.1/apis/commonfiles/version.php#maturity). 
+$definitions = array(
+    'course_visits' => array(
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'staticacceleration' => true,
+        'staticaccelerationsize' => 30,
+    ),
+);
