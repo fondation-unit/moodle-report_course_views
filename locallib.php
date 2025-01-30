@@ -196,8 +196,10 @@ class ReportVisits {
                 FROM {logstore_standard_log} log
                 INNER JOIN {course} c ON c.id = log.courseid
                 INNER JOIN {course_categories} cc ON c.category = cc.id
-                WHERE (log.courseid > 0 
-                    OR (log.action LIKE 'viewed'))
+                WHERE (
+                    log.courseid > 0 
+                    OR (log.action LIKE 'viewed')
+                )
                 AND log.timecreated BETWEEN :startdate AND :enddate
                 GROUP BY c.id, c.fullname, cc.name
                 ORDER BY score DESC";
