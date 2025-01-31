@@ -38,7 +38,7 @@ class ReportVisits {
     /** @var int The perpage setting value. */
     protected $perpage;
 
-    /** @var \cache_application Cache instance for rate limiter. */
+    /** @var \cache_application Cache instance. */
     private \cache_application $cache;
 
     /**
