@@ -25,57 +25,53 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-use paging_bar;
-
 class ReportVisits {
-    /**
-     * @var moodle_database Moodle's database connector.
-     */
+    /** @var \moodle_database Moodle database connector. */
     protected $db;
 
-    /**
-     * @var int The current page.
-     */
+    /** @var \cache_application Cache instance for rate limiter. */
+    private \cache_application $cache;
+
+    /** @var int The selected year. */
+    protected $selectedyear;
+
+    /** @var int The current page. */
     protected $page;
 
-    /**
-     * @var int The perpage setting value.
-     */
+    /** @var int The perpage setting value. */
     protected $perpage;
 
     /**
      * Class constructor.
      *
-     * @param moodle_database $db
+     * @param \moodle_database $db
      * @param int $page
      * @param int $perpage
      */
-    public function __construct($db, $page = 0, $perpage = 10) {
+    public function __construct($db, $selectedyear = null, $page = 0, $perpage = 10) {
         $this->db = $db;
+        $this->selectedyear = intval($selectedyear);
         $this->page = $page;
         $this->perpage = $perpage;
-    }
-
-    /**
-     * Debug printing function.
-     * 
-     * @return void
-     */
-    public static function print_records_debug(array $records) {
-        print "<pre>";
-        print_r($records);
-        print "</pre>";
+        $this->cache = \cache::make('report_visits', 'course_visits');
     }
 
     /**
      * Initiate a course visits report.
      * 
      * @return function
-     */ 
+     */
     public function query_course_visits(string $component) {
-        $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
-        $records = $this->query_course_infos($component_ids);
+        // Cache the component IDs.
+        $cache_key = "course_visits_" . md5($component);
+        $component_ids = isset($cache_key) ? $this->cache->get($cache_key) : null;
 
+        if ($component_ids === false) {
+            $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
+            $this->cache->set($cache_key, $component_ids, 3600); // Cache duration.
+        }
+
+        $records = $this->query_course_infos($component_ids);
         return $this->format_course_records($records);
     }
 
@@ -83,7 +79,7 @@ class ReportVisits {
      * Create a new course schedule record, then query the logs for the given timestamps.
      * 
      * @return void
-     */ 
+     */
     public function generate_course_report(string $component, int $startdate, int $enddate) {
         // Create a new schedule record.
         $schedule = new \stdClass();
@@ -96,23 +92,28 @@ class ReportVisits {
         $records = $this->query_course_records($startdate, $enddate);
 
         foreach ($records as $record) {
-            $existing = $this->db->get_record('report_visits', ['component' => $component, 'component_id' => $record->id]);
-            if ($existing) {
-                // Update the existing record.
-                $existing->score = intval($existing->score) + intval($record->score);
-                $existing->timestamp = time();
-                $existing->schedule_id = $schedule_id;
+            // Retrieve any existing record.
+            $existingrecord = $this->db->get_record('report_visits', [
+                'component' => $component,
+                'component_id' => $record->id,
+                'year' => $record->year
+            ]);
 
-                $this->db->update_record('report_visits', $existing);
+            if ($existingrecord) {
+                // Update the existing record.
+                $existingrecord->total = intval($existingrecord->total) + intval($record->total);
+                $existingrecord->timestamp = time();
+                $existingrecord->schedule_id = $schedule_id;
+                $this->db->update_record('report_visits', $existingrecord);
             } else {
                 // Create a new record.
                 $obj = new \stdClass();
                 $obj->component = $component;
-                $obj->score = $record->score;
+                $obj->total = $record->total;
                 $obj->timestamp = time();
+                $obj->year = $record->year;
                 $obj->component_id = $record->id;
                 $obj->schedule_id = $schedule_id;
-
                 $this->db->insert_record('report_visits', $obj);
             }
         }
@@ -125,11 +126,21 @@ class ReportVisits {
      */
     public function query_total_course_infos() {
         $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => 'course']);
+
+        // Validate the component IDs.
+        if (empty($component_ids)) {
+            $obj = new \stdClass();
+            $obj->total = 0;
+            return $obj;
+        }
+
         list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
+        $params['y'] = $this->selectedyear; // Add the selected year as a parameter.
 
         $sql = "SELECT COUNT(id) as total
-                FROM {report_visits}
+                FROM {report_visits} as rv
                 WHERE component_id $in_sql
+                AND year = :y
                 LIMIT 1";
 
         return $this->db->get_record_sql($sql, $params);
@@ -148,21 +159,27 @@ class ReportVisits {
 
         // Create the placeholder param for each course ID.
         list($in_sql, $params) = $this->db->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
+        $params['y'] = $this->selectedyear; // Add the selected year as a parameter.
 
         $sql = "SELECT c.id,
                     c.fullname,
                     cc.id AS category_id,
                     cc.name AS category,
-                    rv.score AS score
-                FROM {logstore_standard_log} log
-                INNER JOIN {course} c ON c.id = log.courseid
+                    rv.total AS total
+                FROM {course} c
                 INNER JOIN {course_categories} cc ON c.category = cc.id
                 INNER JOIN {report_visits} rv ON rv.component_id = c.id
-                WHERE (log.courseid > 0 
-                    OR (log.action LIKE 'viewed'))
+                WHERE EXISTS (
+                    SELECT 1 
+                    FROM {logstore_standard_log} log 
+                    WHERE log.courseid = c.id 
+                    AND (log.courseid > 0 OR log.action = 'viewed')
+                    LIMIT 1
+                )
                 AND c.id $in_sql
-                GROUP BY c.id
-                ORDER BY score DESC";
+                AND year = :y
+                GROUP BY c.id, c.fullname, cc.id, cc.name, rv.total
+                ORDER BY rv.total DESC";
 
         $offset = intval($this->page) * intval($this->perpage);
         return $this->db->get_records_sql($sql, $params, $offset, $this->perpage);
@@ -174,18 +191,36 @@ class ReportVisits {
      * @return array
      */
     private function query_course_records(int $startdate, int $enddate) {
-        $sql = "SELECT c.id,
+        // Different date extraction syntax based on database type.
+        if ($this->db->get_dbfamily() === 'postgres') {
+            $year = "EXTRACT(YEAR FROM to_timestamp(log.timecreated))";
+        } else {
+            $year = "YEAR(FROM_UNIXTIME(log.timecreated))";
+        }
+
+        $sql = "SELECT
+                    CONCAT(c.id, '-', {$year}) AS uniqueid,
+                    c.id,
                     c.fullname,
                     cc.name AS category,
-                    COUNT(log.courseid) AS score
+                    {$year} as year,
+                    COUNT(log.courseid) AS total
                 FROM {logstore_standard_log} log
                 INNER JOIN {course} c ON c.id = log.courseid
                 INNER JOIN {course_categories} cc ON c.category = cc.id
-                WHERE (log.courseid > 0 
-                    OR (log.action LIKE 'viewed'))
+                WHERE (
+                    log.courseid > 0 
+                    OR (log.action LIKE 'viewed')
+                )
                 AND log.timecreated BETWEEN :startdate AND :enddate
-                GROUP BY c.id, c.fullname, cc.name
-                ORDER BY score DESC";
+                GROUP BY
+                    c.id,
+                    c.fullname,
+                    cc.name,
+                    {$year}
+                ORDER BY
+                    year DESC,
+                    total DESC";
 
         return $this->db->get_records_sql($sql, [
             'startdate' => $startdate,
@@ -200,13 +235,15 @@ class ReportVisits {
      * @return array
      */
     private function format_course_records(array $records) {
-      foreach ($records as $record) {
-            // Create an URL to the course.
-            $courseurl = new \moodle_url('/course/view.php', array('id' => $record->id));
-            $record->course_url = $courseurl->out(false);
-            // Create an URL to the course category.
-            $categoryurl = new \moodle_url('/course/index.php', array('categoryid' => $record->category_id));
-            $record->category_url = $categoryurl->out(false);
+        $course_url_base = new \moodle_url('/course/view.php');
+        $category_url_base = new \moodle_url('/course/index.php');
+
+        foreach ($records as $record) {
+            $course_url_base->param('id', $record->id);
+            $category_url_base->param('categoryid', $record->category_id);
+
+            $record->course_url = $course_url_base->out(false);
+            $record->category_url = $category_url_base->out(false);
         }
 
         return array_values($records);
@@ -215,14 +252,14 @@ class ReportVisits {
     /**
      * Create a paging_bar object for the template.
      * 
-     * @return paging_bar
+     * @return \paging_bar
      */
     public function create_pagingbar($component) {
         global $CFG;
 
         $records = $this->query_total_course_infos($component);
-        $baseurl = "$CFG->wwwroot/report/visits/view.php";
-        $pagingbar = new paging_bar($records->total, $this->page, $this->perpage, $baseurl);
+        $baseurl = "$CFG->wwwroot/report/visits/view.php?y=" . urlencode($this->selectedyear);
+        $pagingbar = new \paging_bar($records->total, $this->page, $this->perpage, $baseurl);
 
         return $pagingbar;
     }

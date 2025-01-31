@@ -28,7 +28,6 @@ namespace report_visits\output;
 defined('MOODLE_INTERNAL') || die();
 
 use plugin_renderer_base;
-use renderable;
 
 class renderer extends plugin_renderer_base {
     public function render_course_report(\templatable $output) {

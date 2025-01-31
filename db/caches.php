@@ -15,9 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Post installation and migration code.
- *
- * Contains code that are run during the installation of report/visits
+ * report_visits cache definitions.
  *
  * @package   report_visits
  * @copyright 2025 Fondation UNIT
@@ -25,22 +23,14 @@
  * @author    Pierre Duverneix
  */
 
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 
-/**
- * @global moodle_database $DB
- * 
- * @return void
- */
-function xmldb_report_visits_install() {
-    global $DB;
-}
-
-/**
- * Custom uninstallation procedure.
- * 
- * @return bool
- */
-function xmldb_report_visits_uninstall() {
-    return true;
-}
+$definitions = array(
+    'course_visits' => array(
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'staticacceleration' => true,
+        'staticaccelerationsize' => 30,
+    ),
+);

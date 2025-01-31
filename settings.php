@@ -37,8 +37,11 @@ if ($hassiteconfig) {
     ));
 
     // Add the plugin's specific settings page.
-    $settings->add(new admin_setting_heading('report_visits/pluginname', '',
-        new lang_string('settings', 'report_visits')));
+    $settings->add(new admin_setting_heading(
+        'report_visits/pluginname',
+        '',
+        new lang_string('settings', 'report_visits')
+    ));
 
     $settings->add(new admin_setting_configtext(
         'report_visits/perpage',

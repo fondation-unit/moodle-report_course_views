@@ -28,6 +28,7 @@ require(__DIR__ . '/locallib.php');
 
 global $DB, $PAGE;
 
+$selectedyear = optional_param('y', date('Y'), PARAM_INT);
 $systemcontext = context_system::instance();
 
 $PAGE->set_url('/report/visits/view.php');
@@ -44,10 +45,26 @@ $tabs[] = new tabobject(1, new moodle_url($pluginurl, ['t' => 1]), get_string('c
 
 echo $OUTPUT->header();
 
+// Define available years for selection
+$current_year = date('Y');
+$years = range($current_year - 5, $current_year + 1);
+
+// Form to select year
+echo '<form method="GET" action="">';
+echo '<label for="y">Année : </label>';
+echo '<select name="y" id="year">';
+foreach ($years as $year) {
+    $selected = ($year == $selectedyear) ? 'selected' : '';
+    echo "<option value='$year' $selected>$year</option>";
+}
+echo '</select>';
+echo '<button type="submit">Apply</button>';
+echo '</form>';
+
 $perpage = get_config('report_visits', 'perpage');
-$report_visits = new \ReportVisits($DB, $page, $perpage);
+$report_visits = new \ReportVisits($DB, $selectedyear, $page, $perpage);
 $output = $PAGE->get_renderer('report_visits');
-$pagingbar = $report_visits->create_pagingbar("course");
+$pagingbar = $report_visits->create_pagingbar('course');
 
 echo $OUTPUT->tabtree($tabs, $tab);
 
