@@ -148,17 +148,10 @@ class ReportVisits {
         list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
         $params['y'] = $this->selectedyear; // Add the selected year as a parameter.
 
-        // Different date extraction syntax based on database type.
-        if ($this->db->get_dbfamily() === 'postgres') {
-            $year = "EXTRACT(YEAR FROM to_timestamp(rv.timestamp))";
-        } else {
-            $year = "YEAR(FROM_UNIXTIME(rv.timestamp))";
-        }
-
-        $sql = "SELECT COUNT(id) as total, {$year} as year
+        $sql = "SELECT COUNT(id) as total
                 FROM {report_visits} as rv
                 WHERE component_id $in_sql
-                AND {$year} = :y
+                AND year = :y
                 LIMIT 1";
 
         return $this->db->get_record_sql($sql, $params);
@@ -179,17 +172,10 @@ class ReportVisits {
         list($in_sql, $params) = $this->db->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
         $params['y'] = $this->selectedyear; // Add the selected year as a parameter.
 
-        if ($this->db->get_dbfamily() === 'postgres') {
-            $year = "EXTRACT(YEAR FROM to_timestamp(rv.timestamp))";
-        } else {
-            $year = "YEAR(FROM_UNIXTIME(rv.timestamp))";
-        }
-
         $sql = "SELECT c.id,
                     c.fullname,
                     cc.id AS category_id,
                     cc.name AS category,
-                    {$year} as year,
                     rv.total AS total
                 FROM {course} c
                 INNER JOIN {course_categories} cc ON c.category = cc.id
@@ -202,7 +188,7 @@ class ReportVisits {
                     LIMIT 1
                 )
                 AND c.id $in_sql
-                AND {$year} = :y
+                AND year = :y
                 GROUP BY c.id, c.fullname, cc.id, cc.name, rv.total
                 ORDER BY rv.total DESC";
 
