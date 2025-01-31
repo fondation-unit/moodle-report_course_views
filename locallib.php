@@ -90,6 +90,8 @@ class ReportVisits {
 
         // Query the course logs.
         $records = $this->query_course_records($startdate, $enddate);
+        // Prepare an array to store the new records that need to be created.
+        $newrecords = [];
 
         foreach ($records as $record) {
             // Retrieve any existing record.
@@ -106,7 +108,7 @@ class ReportVisits {
                 $existingrecord->schedule_id = $schedule_id;
                 $this->db->update_record('report_visits', $existingrecord);
             } else {
-                // Create a new record.
+                // Create a new record object.
                 $obj = new \stdClass();
                 $obj->component = $component;
                 $obj->total = $record->total;
@@ -114,9 +116,12 @@ class ReportVisits {
                 $obj->year = $record->year;
                 $obj->component_id = $record->id;
                 $obj->schedule_id = $schedule_id;
-                $this->db->insert_record('report_visits', $obj);
+                $newrecords[] = $obj;
             }
         }
+
+        // Insert multiple records into the table.
+        $this->db->insert_records('report_visits', $newrecords);
     }
 
     /**
