@@ -29,7 +29,7 @@ require(__DIR__ . '/locallib.php');
 global $DB, $PAGE;
 
 $selectedyear = optional_param('y', date('Y'), PARAM_INT);
-$systemcontext = context_system::instance();
+$systemcontext = \context_system::instance();
 
 $PAGE->set_url('/report/visits/view.php');
 $PAGE->set_context($systemcontext);
@@ -41,7 +41,7 @@ $pluginurl = new \moodle_url('/report/visits/view.php');
 $page = optional_param('page', 0, PARAM_INT);
 $tab = optional_param('t', 1, PARAM_INT);
 $tabs = [];
-$tabs[] = new tabobject(1, new moodle_url($pluginurl, ['t' => 1]), get_string('course_report', 'report_visits'));
+$tabs[] = new \tabobject(1, new \moodle_url($pluginurl, ['t' => 1]), get_string('course_report', 'report_visits'));
 
 echo $OUTPUT->header();
 
@@ -50,16 +50,12 @@ $current_year = date('Y');
 $years = range($current_year - 5, $current_year + 1);
 
 // Form to select year
-echo '<form method="GET" action="">';
-echo '<label for="y">Année : </label>';
-echo '<select name="y" id="year">';
-foreach ($years as $year) {
-    $selected = ($year == $selectedyear) ? 'selected' : '';
-    echo "<option value='$year' $selected>$year</option>";
-}
-echo '</select>';
-echo '<button type="submit">Apply</button>';
-echo '</form>';
+$url = new \moodle_url('/report/visits/view.php');
+$options = array_combine($years, $years);
+$select = new \single_select($url, 'y', $options, $selectedyear, null, 'yearselect');
+$select->set_label(get_string('year', 'report_visits'), array('class' => 'pe-2'));
+
+echo $OUTPUT->render($select);
 
 $perpage = get_config('report_visits', 'perpage');
 $report_visits = new \ReportVisits($DB, $selectedyear, $page, $perpage);
