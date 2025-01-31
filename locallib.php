@@ -32,6 +32,9 @@ class ReportVisits {
     /** @var \cache_application Cache instance for rate limiter. */
     private \cache_application $cache;
 
+    /** @var int The selected year. */
+    protected $selectedyear;
+
     /** @var int The current page. */
     protected $page;
 
@@ -45,11 +48,12 @@ class ReportVisits {
      * @param int $page
      * @param int $perpage
      */
-    public function __construct($db, $page = 0, $perpage = 10) {
+    public function __construct($db, $selectedyear = null, $page = 0, $perpage = 10) {
         $this->db = $db;
-        $this->cache = \cache::make('report_visits', 'course_visits');
+        $this->selectedyear = intval($selectedyear);
         $this->page = $page;
         $this->perpage = $perpage;
+        $this->cache = \cache::make('report_visits', 'course_visits');
     }
 
     /**
@@ -142,10 +146,19 @@ class ReportVisits {
         }
 
         list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
+        $params['y'] = $this->selectedyear; // Add the selected year as a parameter.
 
-        $sql = "SELECT COUNT(id) as total
-                FROM {report_visits}
+        // Different date extraction syntax based on database type.
+        if ($this->db->get_dbfamily() === 'postgres') {
+            $year = "EXTRACT(YEAR FROM to_timestamp(rv.timestamp))";
+        } else {
+            $year = "YEAR(FROM_UNIXTIME(rv.timestamp))";
+        }
+
+        $sql = "SELECT COUNT(id) as total, {$year} as year
+                FROM {report_visits} as rv
                 WHERE component_id $in_sql
+                AND {$year} = :y
                 LIMIT 1";
 
         return $this->db->get_record_sql($sql, $params);
@@ -164,11 +177,19 @@ class ReportVisits {
 
         // Create the placeholder param for each course ID.
         list($in_sql, $params) = $this->db->get_in_or_equal($course_ids, SQL_PARAMS_NAMED);
+        $params['y'] = $this->selectedyear; // Add the selected year as a parameter.
+
+        if ($this->db->get_dbfamily() === 'postgres') {
+            $year = "EXTRACT(YEAR FROM to_timestamp(rv.timestamp))";
+        } else {
+            $year = "YEAR(FROM_UNIXTIME(rv.timestamp))";
+        }
 
         $sql = "SELECT c.id,
                     c.fullname,
                     cc.id AS category_id,
                     cc.name AS category,
+                    {$year} as year,
                     rv.total AS total
                 FROM {course} c
                 INNER JOIN {course_categories} cc ON c.category = cc.id
@@ -181,6 +202,7 @@ class ReportVisits {
                     LIMIT 1
                 )
                 AND c.id $in_sql
+                AND {$year} = :y
                 GROUP BY c.id, c.fullname, cc.id, cc.name, rv.total
                 ORDER BY rv.total DESC";
 
@@ -201,7 +223,9 @@ class ReportVisits {
             $year = "YEAR(FROM_UNIXTIME(log.timecreated))";
         }
 
-        $sql = "SELECT c.id,
+        $sql = "SELECT
+                    CONCAT(c.id, '-', {$year}) AS uniqueid,
+                    c.id,
                     c.fullname,
                     cc.name AS category,
                     {$year} as year,
@@ -218,7 +242,7 @@ class ReportVisits {
                     c.id,
                     c.fullname,
                     cc.name,
-                    year
+                    {$year}
                 ORDER BY
                     year DESC,
                     total DESC";
@@ -259,7 +283,7 @@ class ReportVisits {
         global $CFG;
 
         $records = $this->query_total_course_infos($component);
-        $baseurl = "$CFG->wwwroot/report/visits/view.php";
+        $baseurl = "$CFG->wwwroot/report/visits/view.php?y=" . urlencode($this->selectedyear);
         $pagingbar = new \paging_bar($records->total, $this->page, $this->perpage, $baseurl);
 
         return $pagingbar;

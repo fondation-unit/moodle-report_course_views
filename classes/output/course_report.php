@@ -33,14 +33,10 @@ use renderer_base;
 use templatable;
 
 class course_report implements renderable, templatable {
-    /**
-     * @var array The array of records to display.
-     */
+    /** @var array The array of records to display. */
     public array $records;
 
-    /**
-     * @var paging_bar The pagingbar object.
-     */
+    /** @var paging_bar The pagingbar object. */
     public paging_bar $pagingbar;
 
     /**
