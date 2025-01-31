@@ -129,8 +129,8 @@ class ReportVisits {
      * 
      * @return \stdClass
      */
-    public function query_total_course_infos() {
-        $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => 'course']);
+    public function count_course_records($component) {
+        $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
 
         // Validate the component IDs.
         if (empty($component_ids)) {
@@ -140,15 +140,10 @@ class ReportVisits {
         }
 
         list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
-        $params['y'] = $this->selectedyear; // Add the selected year as a parameter.
+        $params['year'] = $this->selectedyear; // Add the selected year as a parameter.
+        $sql = "SELECT COUNT(*) FROM {report_visits} WHERE year = :year AND component_id $in_sql";
 
-        $sql = "SELECT COUNT(id) as total
-                FROM {report_visits} as rv
-                WHERE component_id $in_sql
-                AND year = :y
-                LIMIT 1";
-
-        return $this->db->get_record_sql($sql, $params);
+        return $this->db->count_records_sql($sql, $params);
     }
 
     /**
@@ -262,9 +257,9 @@ class ReportVisits {
     public function create_pagingbar($component) {
         global $CFG;
 
-        $records = $this->query_total_course_infos($component);
+        $recordscount = $this->count_course_records($component);
         $baseurl = "$CFG->wwwroot/report/visits/view.php?y=" . urlencode($this->selectedyear);
-        $pagingbar = new \paging_bar($records->total, $this->page, $this->perpage, $baseurl);
+        $pagingbar = new \paging_bar($recordscount, $this->page, $this->perpage, $baseurl);
 
         return $pagingbar;
     }
