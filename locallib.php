@@ -29,9 +29,6 @@ class ReportVisits {
     /** @var \moodle_database Moodle database connector. */
     protected $db;
 
-    /** @var \cache_application Cache instance for rate limiter. */
-    private \cache_application $cache;
-
     /** @var int The selected year. */
     protected $selectedyear;
 
@@ -40,6 +37,9 @@ class ReportVisits {
 
     /** @var int The perpage setting value. */
     protected $perpage;
+
+    /** @var \cache_application Cache instance for rate limiter. */
+    private \cache_application $cache;
 
     /**
      * Class constructor.
