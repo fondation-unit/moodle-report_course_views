@@ -57,17 +57,6 @@ class ReportVisits {
     }
 
     /**
-     * Debug printing function.
-     * 
-     * @return void
-     */
-    public static function print_records_debug(array $records) {
-        print "<pre>";
-        print_r($records);
-        print "</pre>";
-    }
-
-    /**
      * Initiate a course visits report.
      * 
      * @return function
