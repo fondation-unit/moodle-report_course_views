@@ -131,12 +131,9 @@ class ReportVisits {
      */
     public function count_course_records($component) {
         $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
-
         // Validate the component IDs.
         if (empty($component_ids)) {
-            $obj = new \stdClass();
-            $obj->total = 0;
-            return $obj;
+            return 0;
         }
 
         list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
