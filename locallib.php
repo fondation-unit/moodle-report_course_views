@@ -66,9 +66,12 @@ class ReportVisits {
         $cache_key = "course_visits_" . md5($component);
         $component_ids = isset($cache_key) ? $this->cache->get($cache_key) : null;
 
-        if ($component_ids === false) {
+        if (!is_array($component_ids)) {
             $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
             $this->cache->set($cache_key, $component_ids, 3600); // Cache duration.
+        } else {
+            // Ensure all cached elements are integers.
+            $component_ids = array_map('intval', array_filter($component_ids, 'is_numeric'));
         }
 
         $records = $this->query_course_infos($component_ids);
