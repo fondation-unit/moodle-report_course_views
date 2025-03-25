@@ -66,9 +66,12 @@ class ReportVisits {
         $cache_key = "course_visits_" . md5($component);
         $component_ids = isset($cache_key) ? $this->cache->get($cache_key) : null;
 
-        if ($component_ids === false) {
+        if (!is_array($component_ids)) {
             $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
             $this->cache->set($cache_key, $component_ids, 3600); // Cache duration.
+        } else {
+            // Ensure all cached elements are integers.
+            $component_ids = array_map('intval', array_filter($component_ids, 'is_numeric'));
         }
 
         $records = $this->query_course_infos($component_ids);
@@ -131,12 +134,9 @@ class ReportVisits {
      */
     public function count_course_records($component) {
         $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
-
         // Validate the component IDs.
         if (empty($component_ids)) {
-            $obj = new \stdClass();
-            $obj->total = 0;
-            return $obj;
+            return 0;
         }
 
         list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
