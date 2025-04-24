@@ -17,12 +17,12 @@
 /**
  * Report renderer file.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
 
-namespace report_visits\output;
+namespace report_course_views\output;
 
 defined('MOODLE_INTERNAL') || die();
 

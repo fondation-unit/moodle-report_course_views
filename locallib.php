@@ -15,16 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * report_visits local library.
+ * report_course_views local library.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-class ReportVisits {
+class ReportCourseViews {
     /** @var \moodle_database Moodle database connector. */
     protected $db;
 
@@ -52,7 +52,7 @@ class ReportVisits {
         $this->selectedyear = intval($selectedyear);
         $this->page = $page;
         $this->perpage = $perpage;
-        $this->cache = \cache::make('report_visits', 'course_visits');
+        $this->cache = \cache::make('report_course_views', 'course_visits');
     }
 
     /**
@@ -72,7 +72,7 @@ class ReportVisits {
         $component_ids = isset($cache_key) ? $this->cache->get($cache_key) : null;
 
         if (!is_array($component_ids)) {
-            $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
+            $component_ids = $this->db->get_fieldset('report_course_views', 'component_id', ['component' => $component]);
             $this->cache->set($cache_key, $component_ids, 3600); // Cache duration.
         } else {
             // Ensure all cached elements are integers.
@@ -94,7 +94,7 @@ class ReportVisits {
         $schedule->component = $component;
         $schedule->status = 1;
         $schedule->timestamp = time();
-        $schedule_id = $this->db->insert_record('report_visits_schedules', $schedule, true);
+        $schedule_id = $this->db->insert_record('report_course_views_schedules', $schedule, true);
 
         // Query the course logs.
         $records = $this->query_course_records($startdate, $enddate);
@@ -103,7 +103,7 @@ class ReportVisits {
 
         foreach ($records as $record) {
             // Retrieve any existing record.
-            $existingrecord = $this->db->get_record('report_visits', [
+            $existingrecord = $this->db->get_record('report_course_views', [
                 'component' => $component,
                 'component_id' => $record->id,
                 'year' => $record->year
@@ -114,7 +114,7 @@ class ReportVisits {
                 $existingrecord->total = intval($existingrecord->total) + intval($record->total);
                 $existingrecord->timestamp = time();
                 $existingrecord->schedule_id = $schedule_id;
-                $this->db->update_record('report_visits', $existingrecord);
+                $this->db->update_record('report_course_views', $existingrecord);
             } else {
                 // Create a new record object.
                 $obj = new \stdClass();
@@ -129,7 +129,7 @@ class ReportVisits {
         }
 
         // Insert multiple records into the table.
-        $this->db->insert_records('report_visits', $newrecords);
+        $this->db->insert_records('report_course_views', $newrecords);
     }
 
     /**
@@ -138,7 +138,7 @@ class ReportVisits {
      * @return \stdClass
      */
     public function count_course_records($component) {
-        $component_ids = $this->db->get_fieldset('report_visits', 'component_id', ['component' => $component]);
+        $component_ids = $this->db->get_fieldset('report_course_views', 'component_id', ['component' => $component]);
         // Validate the component IDs.
         if (empty($component_ids)) {
             return 0;
@@ -146,7 +146,7 @@ class ReportVisits {
 
         list($in_sql, $params) = $this->db->get_in_or_equal($component_ids, SQL_PARAMS_NAMED);
         $params['year'] = $this->selectedyear; // Add the selected year as a parameter.
-        $sql = "SELECT COUNT(*) FROM {report_visits} WHERE year = :year AND component_id $in_sql";
+        $sql = "SELECT COUNT(*) FROM {report_course_views} WHERE year = :year AND component_id $in_sql";
 
         return $this->db->count_records_sql($sql, $params);
     }
@@ -173,7 +173,7 @@ class ReportVisits {
                     rv.total AS total
                 FROM {course} c
                 INNER JOIN {course_categories} cc ON c.category = cc.id
-                INNER JOIN {report_visits} rv ON rv.component_id = c.id
+                INNER JOIN {report_course_views} rv ON rv.component_id = c.id
                 WHERE EXISTS (
                     SELECT 1 
                     FROM {logstore_standard_log} log 
@@ -263,10 +263,10 @@ class ReportVisits {
         global $CFG;
 
         $recordscount = $this->count_course_records($component);
-        $baseurl = "$CFG->wwwroot/report/visits/index.php?y=" . urlencode($this->selectedyear);
+        $baseurl = "$CFG->wwwroot/report/course_views/index.php?y=" . urlencode($this->selectedyear);
 
         if ($courseid) {
-            $baseurl = "$CFG->wwwroot/report/visits/view.php?id=" . $courseid . "&y=" . urlencode($this->selectedyear);
+            $baseurl = "$CFG->wwwroot/report/course_views/view.php?id=" . $courseid . "&y=" . urlencode($this->selectedyear);
         }
 
         $pagingbar = new \paging_bar($recordscount, $this->page, $this->perpage, $baseurl);

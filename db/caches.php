@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * report_visits cache definitions.
+ * report_course_views cache definitions.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */

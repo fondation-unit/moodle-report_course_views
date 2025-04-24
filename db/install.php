@@ -17,9 +17,9 @@
 /**
  * Post installation and migration code.
  *
- * Contains code that are run during the installation of report/visits
+ * Contains code that are run during the installation of report/course_views
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
@@ -31,7 +31,7 @@ defined('MOODLE_INTERNAL') || die;
  * 
  * @return void
  */
-function xmldb_report_visits_install() {
+function xmldb_report_course_views_install() {
     global $DB;
 }
 
@@ -40,6 +40,6 @@ function xmldb_report_visits_install() {
  * 
  * @return bool
  */
-function xmldb_report_visits_uninstall() {
+function xmldb_report_course_views_uninstall() {
     return true;
 }

@@ -17,16 +17,16 @@
 /**
  * Lang strings.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
 
-$string['pluginname'] = 'Rapport des visites';
+$string['pluginname'] = 'Rapport du nombre de vues des cours';
 $string['scheduled_report'] = 'Rapport programmé';
 $string['course_report'] = 'Rapport des cours';
 $string['scheduled_course_report'] = 'Scheduled course report';
-$string['settings'] = 'Réglages rapport des visites';
+$string['settings'] = 'Réglages rapport du nombre de vues des cours';
 $string['perpage'] = 'Nombre d\'éléments par page';
 $string['perpage_desc'] = 'Le nombre d\'éléments à afficher par page.';
 $string['year'] = 'Année';

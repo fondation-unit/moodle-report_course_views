@@ -1,4 +1,4 @@
-# Course visit report for Moodle
+# Course views report for Moodle
 
 ## Settings
 

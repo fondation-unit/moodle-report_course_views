@@ -17,7 +17,7 @@
 /**
  * View file.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
@@ -30,23 +30,23 @@ global $DB, $PAGE;
 $selectedyear = optional_param('y', date('Y'), PARAM_INT);
 $systemcontext = \context_system::instance();
 
-$PAGE->set_url('/report/visits/view.php');
+$PAGE->set_url('/report/course_views/view.php');
 $PAGE->set_context($systemcontext);
-$PAGE->set_title(get_string('pluginname', 'report_visits'));
-$PAGE->set_heading(get_string('pluginname', 'report_visits'));
+$PAGE->set_title(get_string('pluginname', 'report_course_views'));
+$PAGE->set_heading(get_string('pluginname', 'report_course_views'));
 $PAGE->set_pagelayout('admin');
 
-$pluginurl = new \moodle_url('/report/visits/view.php');
+$pluginurl = new \moodle_url('/report/course_views/view.php');
 $courseid = required_param('id', PARAM_INT);
 $page = optional_param('page', 0, PARAM_INT);
 $tab = optional_param('t', 1, PARAM_INT);
 
 $tabs = [];
-$tabs[] = new \tabobject(1, new \moodle_url($pluginurl, ['t' => 1]), get_string('course_report', 'report_visits'));
-$perpage = get_config('report_visits', 'perpage');
-$report_visits = new \ReportVisits($DB, $selectedyear, $page, $perpage);
-$output = $PAGE->get_renderer('report_visits');
-$pagingbar = $report_visits->create_pagingbar('course', $courseid);
+$tabs[] = new \tabobject(1, new \moodle_url($pluginurl, ['t' => 1]), get_string('course_report', 'report_course_views'));
+$perpage = get_config('report_course_views', 'perpage');
+$report_course_views = new \ReportCourseViews($DB, $selectedyear, $page, $perpage);
+$output = $PAGE->get_renderer('report_course_views');
+$pagingbar = $report_course_views->create_pagingbar('course', $courseid);
 
 echo $OUTPUT->header();
 echo $OUTPUT->tabtree($tabs, $tab);
@@ -56,17 +56,17 @@ $current_year = date('Y');
 $years = range($current_year - 5, $current_year);
 
 // Form to select year
-$url = new \moodle_url('/report/visits/view.php', ['id' => $courseid]);
+$url = new \moodle_url('/report/course_views/view.php', ['id' => $courseid]);
 $options = array_combine($years, $years);
 $select = new \single_select($url, 'y', $options, $selectedyear, null, 'yearselect');
-$select->set_label(get_string('year', 'report_visits'), array('class' => 'pe-2'));
+$select->set_label(get_string('year', 'report_course_views'), array('class' => 'pe-2'));
 
 echo $OUTPUT->render($select);
 
 // Display the tab view.
 if ($tab == 1) {
-    $records = $report_visits->query_course_visits("course", $courseid);
-    $renderable = new \report_visits\output\course_report($records, $pagingbar);
+    $records = $report_course_views->query_course_visits("course", $courseid);
+    $renderable = new \report_course_views\output\course_report($records, $pagingbar);
     echo $output->render($renderable);
 }
 

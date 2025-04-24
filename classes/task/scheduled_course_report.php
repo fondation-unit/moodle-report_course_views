@@ -17,12 +17,12 @@
 /**
  * Scheduled report task.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
 
-namespace report_visits\task;
+namespace report_course_views\task;
 
 require_once(__DIR__ . '/../../../../config.php');
 require_once(__DIR__ . '/../../locallib.php');
@@ -34,7 +34,7 @@ class scheduled_course_report extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('scheduled_course_report', 'report_visits');
+        return get_string('scheduled_course_report', 'report_course_views');
     }
 
     /**
@@ -43,13 +43,13 @@ class scheduled_course_report extends \core\task\scheduled_task {
     public function execute() {
         global $DB;
 
-        $report_visits = new \ReportVisits($DB);
+        $report_course_views = new \ReportCourseViews($DB);
         // Use the most recent schedule timestamp as startdate or 0 in case of a fresh install.
-        $last_schedule = $DB->get_record_sql('SELECT `timestamp` FROM {report_visits_schedules} ORDER BY id DESC LIMIT 1;');
+        $last_schedule = $DB->get_record_sql('SELECT `timestamp` FROM {report_course_views_schedules} ORDER BY id DESC LIMIT 1;');
         $startdate = ($last_schedule && $last_schedule->timestamp) ? $last_schedule->timestamp : 0;
         $enddate = time();
         $component = "course";
 
-        $report_visits->generate_course_report($component, $startdate, $enddate);
+        $report_course_views->generate_course_report($component, $startdate, $enddate);
     }
 }

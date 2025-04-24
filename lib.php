@@ -17,7 +17,7 @@
 /**
  * Public API of the log report.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
@@ -31,10 +31,10 @@ defined('MOODLE_INTERNAL') || die;
  * @param stdClass $course The course to object for the report
  * @param stdClass $context The context of the course
  */
-function report_visits_extend_navigation_course($navigation, $course, $context) {
-    if (has_capability('report/visits:view', $context)) {
-        $url = new moodle_url('/report/visits/view.php', array('id' => $course->id));
-        $name = get_string('pluginname', 'report_visits');
+function report_course_views_extend_navigation_course($navigation, $course, $context) {
+    if (has_capability('report/course_views:view', $context)) {
+        $url = new moodle_url('/report/course_views/view.php', array('id' => $course->id));
+        $name = get_string('pluginname', 'report_course_views');
         $navigation->add($name, $url, navigation_node::TYPE_SETTING, null, null, new pix_icon('i/report', ''));
     }
 }
