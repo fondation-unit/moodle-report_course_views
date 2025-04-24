@@ -1,5 +1,4 @@
-Course visit report for Moodle
-===
+# Course visit report for Moodle
 
 ## Settings
 
