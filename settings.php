@@ -29,7 +29,7 @@ $hassiteconfig = has_capability('moodle/site:config', context_system::instance()
 if ($hassiteconfig) {
     // Add the report's view page.
     $ADMIN->add('reports', new admin_externalpage(
-        'reportvisits_view', // Unique identifier
+        'reportcourseviews_index', // Unique identifier
         get_string('pluginname', 'report_course_views'),
         $CFG->wwwroot . "/report/course_views/index.php",
         'report/course_views:index'

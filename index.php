@@ -64,7 +64,7 @@ echo $OUTPUT->render($select);
 
 // Display the tab view.
 if ($tab == 1) {
-    $records = $report_course_views->query_course_visits("course");
+    $records = $report_course_views->query_course_views("course");
     $renderable = new \report_course_views\output\course_report($records, $pagingbar);
     echo $output->render($renderable);
 }

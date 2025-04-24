@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $definitions = array(
-    'course_visits' => array(
+    'course_views' => array(
         'mode' => cache_store::MODE_APPLICATION,
         'simplekeys' => true,
         'simpledata' => true,

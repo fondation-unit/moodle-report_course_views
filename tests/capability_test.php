@@ -11,7 +11,7 @@ class capability_test extends \advanced_testcase {
         $this->assertTrue(is_siteadmin());
 
         $systemcontext = \context_system::instance();
-        $canviewreports = has_capability('report/course_views:view', $systemcontext);
+        $canviewreports = has_capability('report/course_views:index', $systemcontext);
         $this->assertTrue($canviewreports);
     }
 }

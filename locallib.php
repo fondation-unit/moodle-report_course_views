@@ -52,15 +52,15 @@ class ReportCourseViews {
         $this->selectedyear = intval($selectedyear);
         $this->page = $page;
         $this->perpage = $perpage;
-        $this->cache = \cache::make('report_course_views', 'course_visits');
+        $this->cache = \cache::make('report_course_views', 'course_views');
     }
 
     /**
-     * Initiate a course visits report.
+     * Initiate a course views report.
      * 
      * @return function
      */
-    public function query_course_visits(string $component, int|null $courseid = null) {
+    public function query_course_views(string $component, int|null $courseid = null) {
         // In the case of a single course query, return early with the report.
         if ($courseid) {
             $records = $this->query_course_infos([$courseid]);
@@ -68,7 +68,7 @@ class ReportCourseViews {
         }
 
         // Cache the component IDs.
-        $cache_key = "course_visits_" . md5($component);
+        $cache_key = "course_views_" . md5($component);
         $component_ids = isset($cache_key) ? $this->cache->get($cache_key) : null;
 
         if (!is_array($component_ids)) {

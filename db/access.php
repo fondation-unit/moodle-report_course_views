@@ -17,7 +17,7 @@
 /**
  * Capabilities
  *
- * Defines capablities related to visits
+ * Defines capablities related to course views
  *
  * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
@@ -44,6 +44,6 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'coursereport/visits:view',
+        'clonepermissionsfrom' => 'coursereport/log:view',
     )
 );
