@@ -27,9 +27,6 @@ namespace report_visits\task;
 require_once(__DIR__ . '/../../../../config.php');
 require_once(__DIR__ . '/../../locallib.php');
 
-use core\message\message;
-use moodle_url;
-
 class scheduled_course_report extends \core\task\scheduled_task {
     /**
      * Return the task's name as shown in admin screens.
