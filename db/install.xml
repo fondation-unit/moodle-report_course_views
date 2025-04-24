@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="report/visits/db" VERSION="20250110" COMMENT="XMLDB file for Moodle report/visits"
+<XMLDB PATH="report/course_views/db" VERSION="20250110" COMMENT="XMLDB file for Moodle report/course_views"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="report_visits_schedules" COMMENT="Stores the scheduled task dates.">
+    <TABLE NAME="report_course_views_schedules" COMMENT="Stores the scheduled task dates.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="component" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the component targeted by the schedule."/>
@@ -15,7 +15,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="report_visits" COMMENT="Stores the data according to their component.">
+    <TABLE NAME="report_course_views" COMMENT="Stores the data according to their component.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="component" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the component concerned by the log."/>
@@ -23,11 +23,11 @@
         <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The record's creation/update timestamp."/>
         <FIELD NAME="year" TYPE="int" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="The year of the record"/>
         <FIELD NAME="component_id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The ID of the component's record."/>
-        <FIELD NAME="schedule_id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The report_visits_schedules record ID."/>
+        <FIELD NAME="schedule_id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The report_course_views_schedules record ID."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="schedule_id" TYPE="foreign" FIELDS="schedule_id" REFTABLE="record_visits_schedules" REFFIELDS="id"/>
+        <KEY NAME="schedule_id" TYPE="foreign" FIELDS="schedule_id" REFTABLE="report_course_views_schedules" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
   </TABLES>

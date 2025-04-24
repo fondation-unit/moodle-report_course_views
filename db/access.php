@@ -17,9 +17,9 @@
 /**
  * Capabilities
  *
- * Defines capablities related to visits
+ * Defines capablities related to course views
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
@@ -27,15 +27,23 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
-    'report/visits:view' => array(
+    'report/course_views:index' => array(
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'read',
         'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW
+        ),
+    ),
+    'report/course_views:view' => array(
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'coursereport/visits:view',
+        'clonepermissionsfrom' => 'coursereport/log:view',
     )
 );

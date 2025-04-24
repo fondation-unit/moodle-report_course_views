@@ -17,14 +17,14 @@
 /**
  * Version info.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2025042400;       // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2025042404;       // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2024042200;       // Requires this Moodle version.
-$plugin->component = 'report_visits';  // Full name of the plugin (used for diagnostics).
+$plugin->component = 'report_course_views';  // Full name of the plugin (used for diagnostics).
 $plugin->maturity  = MATURITY_BETA;    // The release maturity (https://moodledev.io/docs/4.1/apis/commonfiles/version.php#maturity). 

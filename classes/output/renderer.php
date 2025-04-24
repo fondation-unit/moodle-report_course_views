@@ -17,12 +17,12 @@
 /**
  * Renderer file.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
 
-namespace report_visits\output;
+namespace report_course_views\output;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -31,6 +31,6 @@ use plugin_renderer_base;
 class renderer extends plugin_renderer_base {
     public function render_course_report(\templatable $output) {
         $data = $output->export_for_template($this);
-        return parent::render_from_template('report_visits/course_report', $data);
+        return parent::render_from_template('report_course_views/course_report', $data);
     }
 }

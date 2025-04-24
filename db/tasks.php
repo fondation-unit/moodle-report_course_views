@@ -17,7 +17,7 @@
 /**
  * Tasks file of the plugin.
  *
- * @package   report_visits
+ * @package   report_course_views
  * @copyright 2025 Fondation UNIT <contact@unit.eu>
  * @license   https://opensource.org/license/mit MIT
  */
@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
-        'classname' => 'report_visits\task\scheduled_course_report',
+        'classname' => 'report_course_views\task\scheduled_course_report',
         'blocking' => 0,
         'minute' => '30',
         'hour' => '17',
