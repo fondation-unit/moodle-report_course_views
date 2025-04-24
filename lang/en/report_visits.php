@@ -18,9 +18,8 @@
  * Lang strings.
  *
  * @package   report_visits
- * @copyright 2025 Fondation UNIT
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @author    Pierre Duverneix
+ * @copyright 2025 Fondation UNIT <contact@unit.eu>
+ * @license   https://opensource.org/license/mit MIT
  */
 
 $string['pluginname'] = 'Visits report';

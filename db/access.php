@@ -20,9 +20,8 @@
  * Defines capablities related to visits
  *
  * @package   report_visits
- * @copyright 2025 Fondation UNIT
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @author    Pierre Duverneix
+ * @copyright 2025 Fondation UNIT <contact@unit.eu>
+ * @license   https://opensource.org/license/mit MIT
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -31,7 +30,7 @@ $capabilities = array(
     'report/visits:view' => array(
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
+        'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,

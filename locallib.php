@@ -18,9 +18,8 @@
  * report_visits local library.
  *
  * @package   report_visits
- * @copyright 2025 Fondation UNIT
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @author    Pierre Duverneix
+ * @copyright 2025 Fondation UNIT <contact@unit.eu>
+ * @license   https://opensource.org/license/mit MIT
  */
 
 defined('MOODLE_INTERNAL') || die;
@@ -61,7 +60,13 @@ class ReportVisits {
      * 
      * @return function
      */
-    public function query_course_visits(string $component) {
+    public function query_course_visits(string $component, int|null $courseid = null) {
+        // In the case of a single course query, return early with the report.
+        if ($courseid) {
+            $records = $this->query_course_infos([$courseid]);
+            return $this->format_course_records($records);
+        }
+
         // Cache the component IDs.
         $cache_key = "course_visits_" . md5($component);
         $component_ids = isset($cache_key) ? $this->cache->get($cache_key) : null;
@@ -254,11 +259,16 @@ class ReportVisits {
      * 
      * @return \paging_bar
      */
-    public function create_pagingbar($component) {
+    public function create_pagingbar($component, $courseid = null) {
         global $CFG;
 
         $recordscount = $this->count_course_records($component);
-        $baseurl = "$CFG->wwwroot/report/visits/view.php?y=" . urlencode($this->selectedyear);
+        $baseurl = "$CFG->wwwroot/report/visits/index.php?y=" . urlencode($this->selectedyear);
+
+        if ($courseid) {
+            $baseurl = "$CFG->wwwroot/report/visits/view.php?id=" . $courseid . "&y=" . urlencode($this->selectedyear);
+        }
+
         $pagingbar = new \paging_bar($recordscount, $this->page, $this->perpage, $baseurl);
 
         return $pagingbar;
